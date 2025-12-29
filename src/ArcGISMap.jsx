@@ -350,8 +350,10 @@ const ArcGISMap = forwardRef(({ date, basemap, viewMode, mapInfo }, ref) => {
       // Station Map Logic
       if (!date) return;
 
+      console.log(date);
+
       const layer = new GeoJSONLayer({
-        url: `https://geodetic-django-backend.vercel.app/api/stations/${date}`,
+        url: `https://geodetic-django-backend.vercel.app/api/stations/${date}/`,
         outFields: ["*"],
         popupTemplate,
         renderer: viewMode === "3d" ? renderer3D : renderer2D
