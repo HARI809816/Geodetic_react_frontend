@@ -28,6 +28,7 @@ function App() {
   const [showNav, setShowNav] = useState(false);
   const [basemap, setBasemap] = useState("gray-vector");
   const [viewMode, setViewMode] = useState("2d");
+  const [mapInfo, setMapInfo] = useState("station");
   const mapRef = useRef(null);
 
   const handleLoad = () => {
@@ -127,6 +128,43 @@ function App() {
               </button>
             </div>
 
+            {/* Map Type Selection */}
+            <div style={{ marginBottom: "20px", paddingBottom: "20px", borderBottom: "1px solid #eee" }}>
+              <h4 style={{ marginTop: 0, marginBottom: "12px" }}>Map Type</h4>
+              <div style={{ display: "flex", gap: "10px" }}>
+                <button
+                  onClick={() => setMapInfo("station")}
+                  style={{
+                    flex: 1,
+                    padding: "10px",
+                    background: mapInfo === "station" ? "#0078d4" : "#f0f0f0",
+                    color: mapInfo === "station" ? "white" : "#333",
+                    border: "none",
+                    borderRadius: "4px",
+                    cursor: "pointer",
+                    fontWeight: "bold"
+                  }}
+                >
+                  Station Map
+                </button>
+                <button
+                  onClick={() => setMapInfo("earthquake")}
+                  style={{
+                    flex: 1,
+                    padding: "10px",
+                    background: mapInfo === "earthquake" ? "#0078d4" : "#f0f0f0",
+                    color: mapInfo === "earthquake" ? "white" : "#333",
+                    border: "none",
+                    borderRadius: "4px",
+                    cursor: "pointer",
+                    fontWeight: "bold"
+                  }}
+                >
+                  Earthquake Map
+                </button>
+              </div>
+            </div>
+
             {/* View Mode Toggle */}
             <div style={{ marginBottom: "20px", paddingBottom: "20px", borderBottom: "1px solid #eee" }}>
               <h4 style={{ marginTop: 0, marginBottom: "12px" }}>View Mode</h4>
@@ -164,37 +202,39 @@ function App() {
               </div>
             </div>
 
-            {/* Date Selection Section */}
-            <div style={{ marginBottom: "20px", paddingBottom: "20px", borderBottom: "1px solid #eee" }}>
-              <h4 style={{ marginTop: 0, marginBottom: "12px" }}>Load Station Data</h4>
-              <input
-                type="date"
-                value={selectedDate}
-                onChange={(e) => setSelectedDate(e.target.value)}
-                style={{
-                  width: "100%",
-                  padding: "8px",
-                  marginBottom: "10px",
-                  borderRadius: "4px",
-                  border: "1px solid #ccc"
-                }}
-              />
-              <button
-                onClick={handleLoad}
-                style={{
-                  width: "100%",
-                  padding: "10px",
-                  background: "#0078d4",
-                  color: "white",
-                  border: "none",
-                  borderRadius: "4px",
-                  cursor: "pointer",
-                  fontWeight: "bold"
-                }}
-              >
-                Load Data
-              </button>
-            </div>
+            {/* Date Selection Section - Only for Station Map */}
+            {mapInfo === "station" && (
+              <div style={{ marginBottom: "20px", paddingBottom: "20px", borderBottom: "1px solid #eee" }}>
+                <h4 style={{ marginTop: 0, marginBottom: "12px" }}>Load Station Data</h4>
+                <input
+                  type="date"
+                  value={selectedDate}
+                  onChange={(e) => setSelectedDate(e.target.value)}
+                  style={{
+                    width: "100%",
+                    padding: "8px",
+                    marginBottom: "10px",
+                    borderRadius: "4px",
+                    border: "1px solid #ccc"
+                  }}
+                />
+                <button
+                  onClick={handleLoad}
+                  style={{
+                    width: "100%",
+                    padding: "10px",
+                    background: "#0078d4",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "4px",
+                    cursor: "pointer",
+                    fontWeight: "bold"
+                  }}
+                >
+                  Load Data
+                </button>
+              </div>
+            )}
 
             {/* Location Search Section */}
             <div>
@@ -280,7 +320,7 @@ function App() {
         </>
       )}
 
-      <ArcGISMap ref={mapRef} date={apiDate} basemap={basemap} viewMode={viewMode} />
+      <ArcGISMap ref={mapRef} date={apiDate} basemap={basemap} viewMode={viewMode} mapInfo={mapInfo} />
     </div>
   );
 }

@@ -18,7 +18,7 @@ import esriConfig from "@arcgis/core/config";
 // 🔴 OPTIONAL: Add API key here
 const ARCGIS_API_KEY = "AAPTxy8BH1VEsoebNVZXo8HurAU2wRtTCz35rS0IvyV5k0_FmOjKifjQ4MXaetOWAPxQ99ta0HCHYBSsLmJ-RxrEVoyLsT6hCItuii1Wq0Ctiu8ofOMIIcBYiR8_N3HQmOSC4MrerZZW_MiUovETiVP-I6qSZhn0k8qO1SF990cDX26ydD9ug32faqQlUjvebO0WHRrwPN3h0mdKEKlKMAZE8hjWCQHcEG7BM34DXJKiL7A.AT1_B2uSZ31B"; // "YOUR_API_KEY_HERE"
 
-const ArcGISMap = forwardRef(({ date, basemap, viewMode }, ref) => {
+const ArcGISMap = forwardRef(({ date, basemap, viewMode, mapInfo }, ref) => {
   const mapDiv = useRef(null);
   const viewRef = useRef(null);
   const layerRef = useRef(null);
@@ -119,7 +119,7 @@ const ArcGISMap = forwardRef(({ date, basemap, viewMode }, ref) => {
         type: "object",
         width: 30000,   // Width in meters
         height: 100000, // Height in meters
-        resource: { primitive: "inverted-cone" }, 
+        resource: { primitive: "inverted-cone" },
         material: { color: "blue" }
       }]
     }
@@ -289,21 +289,78 @@ const ArcGISMap = forwardRef(({ date, basemap, viewMode }, ref) => {
   }, [viewMode, basemap]);
 
   useEffect(() => {
-    if (!viewRef.current || !date) return;
-
+    if (!viewRef.current) return;
     const view = viewRef.current;
-    if (layerRef.current) view.map.remove(layerRef.current);
 
-    const layer = new GeoJSONLayer({
-      url: `http://localhost:8000/stations/${date}`,
-      outFields: ["*"],
-      popupTemplate,
-      renderer: viewMode === "3d" ? renderer3D : renderer2D
-    });
+    // Cleanup previous layer
+    if (layerRef.current) {
+      view.map.remove(layerRef.current);
+      layerRef.current = null;
+    }
 
-    layerRef.current = layer;
-    view.map.add(layer);
-  }, [date, viewMode]);
+    if (mapInfo === "earthquake") {
+      const url = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_month.geojson";
+
+      const template = {
+        title: "Earthquake Info",
+        content: "Magnitude {mag} {type} hit {place} on {time}",
+        fieldInfos: [
+          {
+            fieldName: "time",
+            format: {
+              dateFormat: "short-date-short-time",
+            },
+          },
+        ],
+      };
+
+      const renderer = {
+        type: "simple",
+        field: "mag",
+        symbol: {
+          type: "simple-marker",
+          color: "orange",
+          outline: {
+            color: "white",
+          },
+        },
+        visualVariables: [
+          {
+            type: "size",
+            field: "mag",
+            stops: [
+              { value: 2.5, size: "4px" },
+              { value: 8, size: "40px" },
+            ],
+          },
+        ],
+      };
+
+      const geojsonLayer = new GeoJSONLayer({
+        url,
+        popupTemplate: template,
+        renderer,
+        copyright: "USGS Earthquakes",
+      });
+
+      layerRef.current = geojsonLayer;
+      view.map.add(geojsonLayer);
+
+    } else {
+      // Station Map Logic
+      if (!date) return;
+
+      const layer = new GeoJSONLayer({
+        url: `https://geodetic-django-backend.vercel.app/api/stations/24apr18/${date}`,
+        outFields: ["*"],
+        popupTemplate,
+        renderer: viewMode === "3d" ? renderer3D : renderer2D
+      });
+
+      layerRef.current = layer;
+      view.map.add(layer);
+    }
+  }, [date, viewMode, mapInfo]);
 
   return (
     <>
